@@ -1,3 +1,8 @@
+"""
+Basic Internet Relay Chat (IRC) client program.
+Some source code modified from: http://net-informations.com/python/net/thread.htm
+"""
+
 import socket
 
 SERVER = "127.0.0.1"
