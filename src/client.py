@@ -1,8 +1,3 @@
-"""
-Basic Internet Relay Chat (IRC) client program.
-Some source code modified from: http://net-informations.com/python/net/thread.htm
-"""
-
 import socket
 
 SERVER = "127.0.0.1"
@@ -21,18 +16,28 @@ while True:
     print("Create room detected.")
     client.sendall(bytes(out_data,'UTF-8'))
   if out_data == '2':
-    #client.sendall(bytes(out_data,'UTF-8'))
+    client.sendall(bytes(out_data,'UTF-8'))
     print("Join room detected. Please enter the room number you want to join: ")
     out_data = input()
     client.sendall(bytes(out_data, 'UTF-8'))
     in_room = 1
+    print("Joining room number ", out_data, "enter EXIT to leave the room")
     while in_room == 1:
+      out_data = input()
+      client.sendall(bytes(out_data, 'UTF-8'))
       in_data = client.recv(1024)
       print("From chatroom :", in_data.decode())
       out_data = input()
       client.sendall(bytes(out_data, 'UTF-8'))
-      if out_data == 'exit':
+      if out_data == 'EXIT':
         in_room = 0
+        print("Leaving room ... ")
+  if out_data == '3':
+    print("Not currently in a room, can't leave room.")
+  if out_data == '4':
+    client.sendall(bytes(out_data, 'UTF-8'))
+    in_data = client.recv(1024)
+    print(in_data.decode())
   #client.sendall(bytes(out_data,'UTF-8'))
   if out_data=='exit':
     break
