@@ -1,3 +1,7 @@
+"""
+Some source code modified from: http://net-informations.com/python/net/thread.htm
+"""
+
 import socket, threading
 
 in_room = 0
@@ -9,7 +13,7 @@ class room():
         self.rlist = [] #List to keep track of who is in the room
 	
     def update_rlist(self, clientAddr, clientSocket):
-        self.rlist.append({clientAddr, clientSocket})
+        self.rlist.append([clientAddr, clientSocket])
 
 class ClientThread(threading.Thread):
     def __init__(self, clientAddress, clientsocket):
@@ -29,25 +33,28 @@ class ClientThread(threading.Thread):
               break
             elif msg == '1':
               print("create room detected")
-            elif msg == '2':
-              print("join room detected")
               in_room = 1
-              data = self.csocket.recv(1024)
+              #data = self.csocket.recv(1024)
               room_num = data.decode()
               #rooms.append(room(room_num))
               new_room = room(room_num)
+              print("New room created.")
               new_room.update_rlist(self.caddr, self.csocket)
               rooms.append(new_room)
               while in_room == 1:
+                #self.csocket.send(bytes(msg, 'UTF-8'))
+                print("In loop")
                 data = self.csocket.recv(1024)
                 msg = data.decode()
                 if msg == 'EXIT':
+                  print("EXIT msg")
                   in_room = 0
-                else:
-                  self.csocket.send(bytes(msg, 'UTF-8'))
+                self.csocket.send(bytes(msg, 'UTF-8'))
+            elif msg == '2':
+              print("join room detected")
             elif msg == '3':
               print("leave room detected")
-            elif msg == '4':
+            """elif msg == '4':
               print("list rooms detected")
               #self.csocket.send(bytes("Here are the current rooms",'UTF-8'))
               if len(rooms) == 0:
@@ -56,7 +63,7 @@ class ClientThread(threading.Thread):
                 for i in range(len(rooms)):
                   self.csocket.send(bytes(i, 'UTF-8'))
             #print ("from client", msg)
-            #self.csocket.send(bytes(msg,'UTF-8'))
+            #self.csocket.send(bytes(msg,'UTF-8'))"""
         print ("Client at ", clientAddress , " disconnected...")
 		
 LOCALHOST = "127.0.0.1"
