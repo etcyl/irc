@@ -3,7 +3,7 @@ Some source code modified from: http://net-informations.com/python/net/thread.ht
 """
 
 
-import socket
+import socket, threading
 
 SERVER = "127.0.0.1"
 PORT = 8080
@@ -14,6 +14,20 @@ client.connect((SERVER, PORT))
 client.setblocking(True)
 in_room = 0
 
+class InputThread(threading.Thread):
+    def __init__(self, client):
+        threading.Thread.__init__(self)
+        self.client = client
+		
+    def run(self):
+        msg = ''
+        while True:
+          data = self.client.recv(1024)
+          msg = data.decode()
+          if msg=='EXIT':
+            break
+          print ("From chatroom: ", msg)
+
 print("Enter 1 to create a room, 2 to join a room, 3 to leave a room, and 4 to list the rooms. Type exit to leave.")
 while True:
   #in_data =  client.recv(1024)
@@ -22,16 +36,18 @@ while True:
   if out_data == '1':
     print("Create room detected.")
     client.sendall(bytes(out_data,'UTF-8'))
+    stream_thread = InputThread(client)
+    stream_thread.start()
     while True:
       print("in while loop")
       #in_data = client.recv(1024)
       out_data = input()
       client.sendall(bytes(out_data, 'UTF-8'))
-      in_data = client.recv(1024)
-      print("From chatroom :", in_data.decode())
-      if out_data == 'EXIT':
-        break
-        print("Leaving room ... ")
+      #in_data = client.recv(1024)
+      #print("From chatroom :", in_data.decode())
+      #if out_data == 'EXIT':
+        #break
+        #print("Leaving room ... ")
   elif out_data == '2':
     client.sendall(bytes(out_data,'UTF-8'))
     print("Join room detected. Please enter the room number you want to join: ")
@@ -44,8 +60,8 @@ while True:
       client.sendall(bytes(out_data, 'UTF-8'))
       in_data = client.recv(1024)
       print("From chatroom :", in_data.decode())
-      out_data = input()
-      client.sendall(bytes(out_data, 'UTF-8'))
+      #out_data = input()
+      #client.sendall(bytes(out_data, 'UTF-8'))
       if out_data == 'EXIT':
         in_room = 0
         print("Leaving room ... ")
