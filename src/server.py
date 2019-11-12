@@ -38,30 +38,29 @@ class ClientThread(threading.Thread):
               print("New room created.")
               new_room.update_rlist(self.caddr, self.csocket)
               rooms.append(new_room)
-              while in_room == 1:
+              while True:
                 print("In loop")
                 data = self.csocket.recv(1024)
                 msg = data.decode()
                 if msg == 'EXIT':
                   print("EXIT msg")
-                  in_room = 0
-                #self.csocket.send(bytes(msg, 'UTF-8'))
+                  break
                 for i in range(len(rooms[0].rlist)):
                   rooms[0].rlist[i][1].send(bytes(msg, 'UTF-8'))
             elif msg == '2':
               print("join room detected")
               rooms[0].update_rlist(self.caddr, self.csocket)
               in_room = 1
-              while in_room == 1:
+              while True:
                 data = self.csocket.recv(1024)
                 msg = data.decode()
                 if msg == 'EXIT':
-                  in_room = 0
-                #self.csocket.send(bytes(msg, 'UTF-8'))
+                  rooms[0].rlist.pop()
+                  break
                 for i in range(len(rooms[0].rlist)):
                   rooms[0].rlist[i][1].send(bytes(msg, 'UTF-8'))
             elif msg == '3':
-              print("leave room detected")
+              print("list rooms detected")
             """elif msg == '4':
               print("list rooms detected")
               #self.csocket.send(bytes("Here are the current rooms",'UTF-8'))
