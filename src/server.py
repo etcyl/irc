@@ -24,7 +24,6 @@ class ClientThread(threading.Thread):
 		
     def run(self):
         print ("Connection from : ", clientAddress)
-        #self.csocket.send(bytes("Enter 1 to create a room, 2 to join a room, 3 to leave a room, and 4 to list the rooms.",'utf-8'))
         msg = ''
         while True:
             data = self.csocket.recv(1024)
@@ -34,24 +33,33 @@ class ClientThread(threading.Thread):
             elif msg == '1':
               print("create room detected")
               in_room = 1
-              #data = self.csocket.recv(1024)
               room_num = data.decode()
-              #rooms.append(room(room_num))
               new_room = room(room_num)
               print("New room created.")
               new_room.update_rlist(self.caddr, self.csocket)
               rooms.append(new_room)
               while in_room == 1:
-                #self.csocket.send(bytes(msg, 'UTF-8'))
                 print("In loop")
                 data = self.csocket.recv(1024)
                 msg = data.decode()
                 if msg == 'EXIT':
                   print("EXIT msg")
                   in_room = 0
-                self.csocket.send(bytes(msg, 'UTF-8'))
+                #self.csocket.send(bytes(msg, 'UTF-8'))
+                for i in range(len(rooms[0].rlist)):
+                  rooms[0].rlist[i][1].send(bytes(msg, 'UTF-8'))
             elif msg == '2':
               print("join room detected")
+              rooms[0].update_rlist(self.caddr, self.csocket)
+              in_room = 1
+              while in_room == 1:
+                data = self.csocket.recv(1024)
+                msg = data.decode()
+                if msg == 'EXIT':
+                  in_room = 0
+                #self.csocket.send(bytes(msg, 'UTF-8'))
+                for i in range(len(rooms[0].rlist)):
+                  rooms[0].rlist[i][1].send(bytes(msg, 'UTF-8'))
             elif msg == '3':
               print("leave room detected")
             """elif msg == '4':
