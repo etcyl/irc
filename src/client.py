@@ -11,7 +11,6 @@ PORT = 8080
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((SERVER, PORT))
-#client.sendall(bytes("This is from Client",'UTF-8'))
 client.setblocking(True)
 in_room = 0
 
@@ -42,7 +41,7 @@ class InputThread(threading.Thread): # Process receiving server data separetely 
 print("Welcome to the chatroom app.")
 print("The following cmds are available: ")
 print("/join <str chatroom_name>: connects you to chatroom_name chatroom,")
-print("/msg <str chatroom_name>: sends your message to chatroom_name chatroom,")
+print("/msg <str chatroom_name> <str msg>: sends your message to chatroom_name chatroom,")
 print("/leave <str chatroom_name>: removes you from chatroom_name chatroom,")
 print("/ls <str chatroom_name>: lists all members of chatroom_name chatroom,")
 print("/ls_all: lists all available chatrooms,")
