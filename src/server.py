@@ -66,9 +66,12 @@ class ClientThread(threading.Thread):
             try:
                 data = self.csocket.recv(1024)
                 msg = data.decode()
-            except socket.error:
-                print("Sock error")
+            except KeyboardInterrupt:
+                print("KeyboardInterrupt")
+                to_client = '/DC'
+                self.csocket.send(bytes(to_clien, 'UTF-8'))
                 self.stop()
+                exit(0)
                 break
             if msg[0:4] == "name":
               user_name = msg[0: 0:] + msg[5 + 1::]
@@ -96,7 +99,7 @@ class ClientThread(threading.Thread):
               room_found = 0
               for i in range(len(rooms)):
                print("Room name is: ", rooms[i].get_room_name())
-               if rooms[i].get_room_name() == msg[0: 0:] + msg[5 + 1::]:
+               if rooms[i].get_room_name() == msg[0: 0:] + msg[5 + 1::]:#msg[7:-1]:
                  new_user = user(self.caddr, self.csocket, user_name)
                  rooms[i].update_rlist(new_user)
                  room_found = 1
@@ -104,7 +107,7 @@ class ClientThread(threading.Thread):
               if room_found == 1:
                 pass
               else:
-                room_name = msg[0: 0:] + msg[5 + 1::]
+                room_name = msg[0: 0:] + msg[5 + 1::]#msg[7:-1]
                 print("Room name is: ", room_name)
                 new_room = room(room_name)
                 print("New room created.")
@@ -149,7 +152,7 @@ class ClientThread(threading.Thread):
                       for j in range(len(rooms[i].rlist)):
                           rooms[i].rlist[j].socket.send(bytes("(" + room_name + ") " + self.username + ": " + to_send, 'UTF-8'))
                       break
-        print ("Client at: ", clientAddress , " disconnected...")
+        print ("(", user_name, ")", "Client at: ", clientAddress , " disconnected...")
 
 LOCALHOST = "127.0.0.1"
 PORT = 8080
@@ -160,8 +163,14 @@ print("Server started.")
 print("Waiting for client request..")
 
 while True:
-    print("Len of rooms is: ", len(rooms))
-    server.listen(1)
-    clientsock, clientAddress = server.accept()
-    newthread = ClientThread(clientAddress, clientsock)
-    newthread.start()
+    try:
+      server.listen(1)
+      clientsock, clientAddress = server.accept()
+      newthread = ClientThread(clientAddress, clientsock)
+      newthread.start()
+    except KeyboardInterrupt:
+      print("KeyboardInterrupt")
+      to_client = '/DC'
+      clientsock.send(bytes(to_client, 'UTF-8'))
+      newthread.stop()
+      exit(0)

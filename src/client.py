@@ -33,7 +33,7 @@ class InputThread(threading.Thread): # Process receiving server data separetely 
               print("Leaving room ... ")
             elif msg == '/DC':
               print("Server disconnecting ... ")
-              server_dc = 0
+              server_dc = 1
               break
             print (msg)
           except socket.error as e:
@@ -66,6 +66,10 @@ print("Username is: ", to_server[0: 0:] + to_server[5 + 1 ::])
 stream_thread = InputThread(client)
 stream_thread.start()
 while True:
+  if server_dc == 1:
+    print("Server shutdown detected ... ")
+    stream_thread.stop()
+    exit(0)
   try:
     to_server = input()
     if to_server[0:5] == '/help':
@@ -77,7 +81,7 @@ while True:
       print("Disconnecting from server ... ")
       exit(0)
       break
-  except KeyboardInterrupt:
+  except (KeyboardInterrupt, ValueError):
     print("Disconnecting from server ...")
     to_server = '/dc'
     client.sendall(bytes(to_server,'UTF-8'))
