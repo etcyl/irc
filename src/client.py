@@ -6,13 +6,13 @@ Some source code modified from: http://net-informations.com/python/net/thread.ht
 
 import socket, threading
 
+server_dc = 0
 SERVER = "127.0.0.1"
 PORT = 8080
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((SERVER, PORT))
 client.setblocking(True)
-in_room = 0
 
 class InputThread(threading.Thread): # Process receiving server data separetely from input from the user
     def __init__(self, client):      # This allows for the most current chatroom messages to display regardless of the user's input 
@@ -21,7 +21,7 @@ class InputThread(threading.Thread): # Process receiving server data separetely 
         self.client = client
 
     def stop(self):
-        self._stop_event.set()		
+        self._stop_event.set()
 
     def run(self):
         msg = ''
@@ -33,12 +33,15 @@ class InputThread(threading.Thread): # Process receiving server data separetely 
               print("Leaving room ... ")
             elif msg == '/DC':
               print("Server disconnecting ... ")
+              server_dc = 0
               break
             print (msg)
-          except OSError:
-            pass
+          except socket.error as e:
+            print("Socket error")
+            exit(0)
           finally:
             self.stop()
+            exit(0)
 
 def print_help_menu():
     print("Welcome to the chatroom app.")
@@ -69,13 +72,16 @@ while True:
       print_help_menu()
     else:
       client.sendall(bytes(to_server,'UTF-8'))
-    if to_server == '/dc':
+    if to_server == '/dc' or server_dc == 1:
       stream_thread.stop()
       print("Disconnecting from server ... ")
+      exit(0)
       break
   except KeyboardInterrupt:
     print("Disconnecting from server ...")
     to_server = '/dc'
     client.sendall(bytes(to_server,'UTF-8'))
+    stream_thread.stop()
+    exit(0)
 
 client.close()
