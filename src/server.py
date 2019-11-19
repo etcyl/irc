@@ -47,31 +47,50 @@ class ClientThread(threading.Thread):
     def set_username(self, u_name):
         self.username = u_name
 
+    def print_help_menu(self):
+        print("Welcome to the chatroom app.")
+        print("The following cmds are available: ")
+        print("/join <str chatroom_name>: connects you to chatroom_name chatroom,")
+        print("/msg <str chatroom_name> <str msg>: sends your message to chatroom_name chatroom,")
+        print("/leave <str chatroom_name>: removes you from chatroom_name chatroom,")
+        print("/ls <str chatroom_name>: lists all members of chatroom_name chatroom,")
+        print("/ls_all: lists all available chatrooms,")
+        print("/dc: disconnects you from the server.")
+        print("/help: prints these messages again.")
+        return
+
     def run(self):
         print ("Connection from : ", clientAddress)
         msg = ''
         while True:
-            data = self.csocket.recv(1024)
-            msg = data.decode()
+            try:
+                data = self.csocket.recv(1024)
+                msg = data.decode()
+            except socket.error:
+                print("Sock error")
+                self.stop()
+                break
             if msg[0:4] == "name":
               user_name = msg[0: 0:] + msg[5 + 1::]
               self.set_username(user_name)
               print("Username is: ", user_name)
             if msg == '/dc':
               print("Server disconnecting ... ")
+              for i in range(len(rooms)):
+                  for j in range(len(rooms[i].rlist)):
+                      if rooms[i].rlist[j].get_name() == self.username:
+                          rooms[i].rlist = [user for user in rooms[i].rlist if user.get_name() != self.username]
               self.stop()
               break
             elif msg[0:7] == '/create':
               print("create room detected")
-              room_name = msg[0: 0:] + msg[7 + 1::]#msg[8:-1]
+              room_name = msg[0: 0:] + msg[7 + 1::]
               print("Room name is: ", room_name)
               new_room = room(room_name)
               print("New room created.")
               new_user = user(self.caddr, self.csocket, user_name)
               new_room.update_rlist(new_user)
               rooms.append(new_room)
-                #for i in range(len(rooms[room_num].rlist)):
-                  #rooms[room_num].rlist[i][1].send(bytes(msg, 'UTF-8'))
             elif msg[0:5] == '/join':
               print("join room detected")
               room_found = 0
@@ -114,18 +133,22 @@ class ClientThread(threading.Thread):
               self.csocket.send(bytes(room_names, 'UTF-8'))
             elif msg[0:4] == '/msg':
               print('send message detected')
+              user_is_in_chatroom = 0
               split_msg = msg.split()
               room_name = split_msg[1]
-              header_len = len(split_msg[0]) + len(split_msg[1])
-              to_send = msg[0: 0: ] + msg[header_len + 2 ::]
+              #Check that the user is in the chatroom
               for i in range(len(rooms)):
                   if rooms[i].get_room_name() == room_name:
                       for j in range(len(rooms[i].rlist)):
-                          #name = rooms[i].rlist[j].get_name()
-                          print("name is: ", rooms[i].rlist[j].get_name())
+                          if rooms[i].rlist[j].get_name() == self.username:
+                              user_is_in_chatroom = 1
+              header_len = len(split_msg[0]) + len(split_msg[1])
+              to_send = msg[0: 0: ] + msg[header_len + 2 ::]
+              for i in range(len(rooms)):
+                  if rooms[i].get_room_name() == room_name and user_is_in_chatroom == 1:
+                      for j in range(len(rooms[i].rlist)):
                           rooms[i].rlist[j].socket.send(bytes("(" + room_name + ") " + self.username + ": " + to_send, 'UTF-8'))
                       break
-              
         print ("Client at: ", clientAddress , " disconnected...")
 
 LOCALHOST = "127.0.0.1"

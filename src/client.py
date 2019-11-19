@@ -35,17 +35,24 @@ class InputThread(threading.Thread): # Process receiving server data separetely 
               print("Server disconnecting ... ")
               break
             print (msg)
-          except:
-            break
+          except OSError:
+            pass
+          finally:
+            self.stop()
 
-print("Welcome to the chatroom app.")
-print("The following cmds are available: ")
-print("/join <str chatroom_name>: connects you to chatroom_name chatroom,")
-print("/msg <str chatroom_name> <str msg>: sends your message to chatroom_name chatroom,")
-print("/leave <str chatroom_name>: removes you from chatroom_name chatroom,")
-print("/ls <str chatroom_name>: lists all members of chatroom_name chatroom,")
-print("/ls_all: lists all available chatrooms,")
-print("/dc: disconnects you from the server.")
+def print_help_menu():
+    print("Welcome to the chatroom app.")
+    print("The following cmds are available: ")
+    print("/join <str chatroom_name>: connects you to chatroom_name chatroom,")
+    print("/msg <str chatroom_name> <str msg>: sends your message to chatroom_name chatroom,")
+    print("/leave <str chatroom_name>: removes you from chatroom_name chatroom,")
+    print("/ls <str chatroom_name>: lists all members of chatroom_name chatroom,")
+    print("/ls_all: lists all available chatrooms,")
+    print("/dc: disconnects you from the server.")
+    print("/help: prints these messages again.")
+    return
+
+print_help_menu()
 
 print("Please enter your username: ")
 username = input()
@@ -56,11 +63,19 @@ print("Username is: ", to_server[0: 0:] + to_server[5 + 1 ::])
 stream_thread = InputThread(client)
 stream_thread.start()
 while True:
-  to_server = input()
-  client.sendall(bytes(to_server,'UTF-8'))
-  if to_server == '/dc':
-    stream_thread.stop()
-    print("Disconnecting from server ... ")
-    break
+  try:
+    to_server = input()
+    if to_server[0:5] == '/help':
+      print_help_menu()
+    else:
+      client.sendall(bytes(to_server,'UTF-8'))
+    if to_server == '/dc':
+      stream_thread.stop()
+      print("Disconnecting from server ... ")
+      break
+  except KeyboardInterrupt:
+    print("Disconnecting from server ...")
+    to_server = '/dc'
+    client.sendall(bytes(to_server,'UTF-8'))
 
 client.close()
