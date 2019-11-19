@@ -1,6 +1,6 @@
 # irc
 
-This project uses TCP and Python to create a multi-client / server interface for chatrooms. 
+This project uses TCP and Python to create a multi-client / single-server interface for chatrooms. 
 The user can specify their username before joining multiple chatrooms.
 
 To start, excecute the server process first: $python server.py
