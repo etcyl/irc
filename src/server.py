@@ -96,7 +96,7 @@ class ClientThread(threading.Thread):
               room_found = 0
               for i in range(len(rooms)):
                print("Room name is: ", rooms[i].get_room_name())
-               if rooms[i].get_room_name() == msg[0: 0:] + msg[5 + 1::]:#msg[7:-1]:
+               if rooms[i].get_room_name() == msg[0: 0:] + msg[5 + 1::]:
                  new_user = user(self.caddr, self.csocket, user_name)
                  rooms[i].update_rlist(new_user)
                  room_found = 1
@@ -104,7 +104,7 @@ class ClientThread(threading.Thread):
               if room_found == 1:
                 pass
               else:
-                room_name = msg[0: 0:] + msg[5 + 1::]#msg[7:-1]
+                room_name = msg[0: 0:] + msg[5 + 1::]
                 print("Room name is: ", room_name)
                 new_room = room(room_name)
                 print("New room created.")
