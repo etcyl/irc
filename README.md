@@ -21,3 +21,5 @@ The following client to server commands are available:
     /ls_all: lists all available chatrooms
     /dc: disconnects you from the server
     /help: prints these messages again
+
+All current source code can be found under the /src folder; /rev contains older, experimental, and/or non-working source code.
