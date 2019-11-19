@@ -39,9 +39,6 @@ class InputThread(threading.Thread): # Process receiving server data separetely 
           except socket.error as e:
             print("Socket error")
             exit(0)
-          finally:
-            self.stop()
-            exit(0)
 
 def print_help_menu():
     print("Welcome to the chatroom app.")
@@ -81,7 +78,7 @@ while True:
       print("Disconnecting from server ... ")
       exit(0)
       break
-  except (KeyboardInterrupt, ValueError):
+  except KeyboardInterrupt:
     print("Disconnecting from server ...")
     to_server = '/dc'
     client.sendall(bytes(to_server,'UTF-8'))
