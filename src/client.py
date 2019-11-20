@@ -31,13 +31,17 @@ class InputThread(threading.Thread): # Process receiving server data separetely 
             msg = data.decode()
             if msg == '/leave':
               print("Leaving room ... ")
-            elif msg == '/DC':
+            elif msg == '/DC' or msg == '':
               print("Server disconnecting ... ")
               server_dc = 1
-              break
+              self.stop()
+              self.client.shutdown(socket.SHUT_RDWR)
+              self.client.close()
+              exit(0)
             print (msg)
           except socket.error as e:
-            print("Socket error")
+            print("(Socket error, possible server crash detected, enter any alphanumeric value to quit ...")
+            server_dc = 1
             exit(0)
 
 def print_help_menu():
@@ -63,6 +67,7 @@ print("Username is: ", to_server[0: 0:] + to_server[5 + 1 ::])
 stream_thread = InputThread(client)
 stream_thread.start()
 while True:
+  print("value of server_dc is: ", server_dc)
   if server_dc == 1:
     print("Server shutdown detected ... ")
     stream_thread.stop()
@@ -76,13 +81,18 @@ while True:
     if to_server == '/dc' or server_dc == 1:
       stream_thread.stop()
       print("Disconnecting from server ... ")
-      exit(0)
-      break
-  except KeyboardInterrupt:
+      stream_thread.stop()
+      sys.exit(0)
+  except (KeyboardInterrupt, ValueError):
     print("Disconnecting from server ...")
     to_server = '/dc'
-    client.sendall(bytes(to_server,'UTF-8'))
-    stream_thread.stop()
-    exit(0)
+    try:
+      client.sendall(bytes(to_server,'UTF-8'))
+    except BrokenPipeError:
+      pass
+    finally:
+      print("Closing ... ")
+      stream_thread.stop()
+      exit(0)
 
 client.close()

@@ -5,6 +5,7 @@ Some source code modified from: http://net-informations.com/python/net/thread.ht
 import socket, threading
 
 rooms = []
+threads = []
 
 class user():
     def __init__(self, clientAddress, clientsocket, name):
@@ -67,9 +68,13 @@ class ClientThread(threading.Thread):
                 data = self.csocket.recv(1024)
                 msg = data.decode()
             except KeyboardInterrupt:
-                print("KeyboardInterrupt")
+                print("KeyboardInterrupt also detected")
                 to_client = '/DC'
-                self.csocket.send(bytes(to_clien, 'UTF-8'))
+                #self.csocket.send(bytes(to_clien, 'UTF-8'))
+                for i in range(len(rooms)):
+                    for j in range(len(rooms[i].rlist)):
+                        print("Sending message to client: ", rooms[i].rlist[i].get_name())
+                        rooms[i].rlist[j].send(bytes(to_client, 'UTF-8'))
                 self.stop()
                 exit(0)
                 break
@@ -168,9 +173,18 @@ while True:
       clientsock, clientAddress = server.accept()
       newthread = ClientThread(clientAddress, clientsock)
       newthread.start()
+      threads.append(newthread)
     except KeyboardInterrupt:
-      print("KeyboardInterrupt")
+      print("KeyboardInterrupt detected ...")
+      for i in range(len(threads)):
+          threads[i].stop()
       to_client = '/DC'
-      clientsock.send(bytes(to_client, 'UTF-8'))
-      newthread.stop()
+      print("help message")
+      #clientsock.send(bytes(to_client, 'UTF-8'))
+      for i in range(len(rooms)):
+          for j in range(len(rooms[i].rlist)):
+              print("Sending '/DC' to user: ", rooms[i].rlist[j].get_name())
+              rooms[i].rlist[j].socket.send(bytes(to_client, 'UTF-8'))
+              rooms[i].rlist[j].socket.shutdown(socket.SHUT_RDWR)
+              rooms[i].rlist[j].socket.close()
       exit(0)
