@@ -119,6 +119,8 @@ class ClientThread(threading.Thread):
                 new_user = user(self.caddr, self.csocket, user_name)
                 new_room.update_rlist(new_user)
                 rooms.append(new_room)
+            elif msg[0:6] == '/leave':
+                
             elif msg == '/ls_all':
               print("list rooms detected")
               list_rooms = []
