@@ -70,7 +70,6 @@ class ClientThread(threading.Thread):
             except KeyboardInterrupt:
                 print("KeyboardInterrupt also detected")
                 to_client = '/DC'
-                #self.csocket.send(bytes(to_clien, 'UTF-8'))
                 for i in range(len(rooms)):
                     for j in range(len(rooms[i].rlist)):
                         print("Sending message to client: ", rooms[i].rlist[i].get_name())
@@ -104,7 +103,7 @@ class ClientThread(threading.Thread):
               room_found = 0
               for i in range(len(rooms)):
                print("Room name is: ", rooms[i].get_room_name())
-               if rooms[i].get_room_name() == msg[0: 0:] + msg[5 + 1::]:#msg[7:-1]:
+               if rooms[i].get_room_name() == msg[0: 0:] + msg[5 + 1::]:
                  new_user = user(self.caddr, self.csocket, user_name)
                  rooms[i].update_rlist(new_user)
                  room_found = 1
@@ -112,7 +111,7 @@ class ClientThread(threading.Thread):
               if room_found == 1:
                 pass
               else:
-                room_name = msg[0: 0:] + msg[5 + 1::]#msg[7:-1]
+                room_name = msg[0: 0:] + msg[5 + 1::]
                 print("Room name is: ", room_name)
                 new_room = room(room_name)
                 print("New room created.")
@@ -120,7 +119,18 @@ class ClientThread(threading.Thread):
                 new_room.update_rlist(new_user)
                 rooms.append(new_room)
             elif msg[0:6] == '/leave':
-                
+                room_found = 0
+                room_name = msg[0: 0:] + msg[6 + 1::]
+                for i in range(len(rooms)):
+                    for j in range(len(rooms[i].rlist)):
+                        if rooms[i].rlist[j].get_name() == self.username and rooms[i].room_name == room_name:
+                            rooms[i].rlist = [user for user in rooms[i].rlist if user.get_name() != self.username]
+                            room_found = 1
+                if room_found == 1:
+                  to_client = '/leave'
+                else:
+                  to_client = 'Room not found.'
+                self.csocket.send(bytes(to_client, 'UTF-8'))
             elif msg == '/ls_all':
               print("list rooms detected")
               list_rooms = []
