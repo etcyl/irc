@@ -2,7 +2,7 @@
 Some source code modified from: http://net-informations.com/python/net/thread.htm
 """
 
-import socket, threading
+import socket, threading, sys
 
 # Client-side init
 server_dc = 0

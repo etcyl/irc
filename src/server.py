@@ -5,6 +5,7 @@ Some source code modified from: http://net-informations.com/python/net/thread.ht
 import socket, threading
 
 rooms = []
+user_list = []
 threads = []
 
 class user():
@@ -61,6 +62,7 @@ class ClientThread(threading.Thread):
         return
 
     def run(self):
+        global user_list
         print ("Connection from : ", clientAddress)
         msg = ''
         while True:
@@ -81,12 +83,17 @@ class ClientThread(threading.Thread):
               user_name = msg[0: 0:] + msg[5 + 1::]
               self.set_username(user_name)
               print("Username is: ", user_name)
-            if msg == '/dc':
+              new_user = user(self.caddr, self.csocket, user_name)
+              user_list.append(new_user)
+            if msg == '/dc' or msg == '':
               print("Server disconnecting ... ")
-              for i in range(len(rooms)):
+              for i in range(len(rooms)): # Delete the user from all rooms they were in
                   for j in range(len(rooms[i].rlist)):
                       if rooms[i].rlist[j].get_name() == self.username:
                           rooms[i].rlist = [user for user in rooms[i].rlist if user.get_name() != self.username]
+              for k in range(len(user_list)): # Delete the user from the list of users
+                  if user_list[k].get_name() == self.username:
+                      user_list = [user for user in user_list if user.get_name() != self.username]
               self.stop()
               break
             elif msg[0:7] == '/create':
@@ -137,6 +144,7 @@ class ClientThread(threading.Thread):
               for i in range(len(rooms)):
                 room_number = rooms[i].get_room_name()
                 list_rooms.append(room_number)
+              list_rooms.sort()
               list_rooms = str(list_rooms)
               self.csocket.send(bytes(list_rooms, 'UTF-8'))
             elif msg[0:3] == '/ls':
@@ -149,8 +157,24 @@ class ClientThread(threading.Thread):
                       person = rooms[i].rlist[j].get_name()
                       room_names.append(person)
                     break
+              room_names.sort()
               room_names = str(room_names)
               self.csocket.send(bytes(room_names, 'UTF-8'))
+            elif msg[0:5] == '/pmsg':
+              print('private message detected')
+              user_found = 0
+              split_msg = msg.split()
+              user_to_msg = split_msg[1]
+              header_len = len(split_msg[0]) + len(split_msg[1])
+              to_send = msg[0: 0:] + msg[header_len + 2 ::]
+              for i in range(len(user_list)):
+                  if user_list[i].get_name() == user_to_msg:
+                      user_found = 1
+                      user_list[i].socket.send(bytes("(private message from " + self.username + "): " + to_send, 'UTF-8'))
+                      break
+              if user_found == 0:
+                  to_send = "Username not found."
+                  self.csocket.send(bytes(to_send, 'UTF-8'))
             elif msg[0:4] == '/msg':
               print('send message detected')
               user_is_in_chatroom = 0
@@ -191,8 +215,6 @@ while True:
       for i in range(len(threads)):
           threads[i].stop()
       to_client = '/DC'
-      print("help message")
-      #clientsock.send(bytes(to_client, 'UTF-8'))
       for i in range(len(rooms)):
           for j in range(len(rooms[i].rlist)):
               print("Sending '/DC' to user: ", rooms[i].rlist[j].get_name())
