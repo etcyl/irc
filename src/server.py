@@ -49,6 +49,11 @@ class ClientThread(threading.Thread):
     def set_username(self, u_name):
         self.username = u_name
 
+    def random_string(self, stringLength=10):
+        """Generate a random string of fixed length """
+        letters = string.ascii_lowercase
+        return ''.join(random.choice(letters) for i in range(stringLength))
+
     def print_help_menu(self):
         print("Welcome to the chatroom app.")
         print("The following cmds are available: ")
@@ -147,6 +152,30 @@ class ClientThread(threading.Thread):
               list_rooms.sort()
               list_rooms = str(list_rooms)
               self.csocket.send(bytes(list_rooms, 'UTF-8'))
+            elif msg[0:6] == '/fsend':
+              split_msg = msg.split()
+              user_to_send = split_msg[1]
+              header_len = len(split_msg[0]) + len(split_msg[1])
+              file_name = msg[0: 0:] + msg[header_len + 2 ::]
+              for i in range(len(user_list)):
+                  if user_list[i].get_name() == user_to_send:
+                      user_list[i].socket.send(bytes('/fsend ' + file_name, 'UTF-8'))
+                      #download_fname = self.random_string()
+                      #file_to_download = open(file_name, "wb")
+                      done = 0
+                      while done == 0:
+                          print("Receiving ...")
+                          data = self.csocket.recv(1024)
+                          print("data is: ", data[-1])
+                          if data[-1] == 101:
+                              done = 1
+                              to_client = '/fdone'
+                              user_list[i].socket.send(bytes(to_client, 'UTF-8'))
+                              print("Finished sending file ... ")
+                              break
+                          print("Sending ... ")
+                          user_list[i].socket.send(data)
+                      break
             elif msg[0:3] == '/ls':
               print('list names detected')
               room_names = []

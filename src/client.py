@@ -37,7 +37,24 @@ class InputThread(threading.Thread): # InputThread inherits properties from the 
               self.client.shutdown(socket.SHUT_RDWR)
               self.client.close()
               exit(0)
-            print (msg)
+            elif msg[0:6] == '/fsend':
+              print("Downloading file ... ")
+              split_msg = msg.split()
+              file_name = split_msg[1]
+              file_to_download = open(file_name, "wb")
+              done = 0
+              while done == 0:
+                  print("Receiving file from user ... ")
+                  data = self.client.recv(1024)
+                  print("data is: ", data)
+                  if data[-1] == 101 or data == '/fdone' or data == b'':
+                      print("Done receiving file from user.")
+                      done = 1
+                      break
+                  file_to_download.write(data)
+              file_to_download.close()
+            else:
+              print (msg)
           except socket.error as e:
             print("Socket error, possible server crash detected, enter any alphanumeric value to quit ...")
             server_dc = 1
@@ -49,6 +66,8 @@ def print_help_menu():
     print("The following cmds are available: ")
     print("/join <str chatroom_name>: connects you to chatroom_name chatroom,")
     print("/msg <str chatroom_name> <str msg>: sends your message to chatroom_name chatroom,")
+    print("/pmsg <str username> <str msg>: sends a private message to the user username,")
+    print("*note that /pmsg only works for users in chatrooms*")
     print("/leave <str chatroom_name>: removes you from chatroom_name chatroom,")
     print("/ls <str chatroom_name>: lists all members of chatroom_name chatroom,")
     print("/ls_all: lists all available chatrooms,")
@@ -81,6 +100,27 @@ while True:
     to_server = input()
     if to_server[0:5] == '/help':
       print_help_menu()
+    elif to_server[0:6] == '/fsend':
+      client.sendall(bytes(to_server,'UTF-8'))
+      split_msg = to_server.split()
+      user_to_send = split_msg[1]
+      header_len = len('/fsend') + len(user_to_send)
+      file_name = str(to_server[0: 0:] + to_server[header_len + 2 ::])
+      print("Filename is: ", file_name)
+      if file_name == "img.png":
+        print("True")
+      else:
+        print("false")
+      file_to_send = open(file_name, "rb")
+      data = file_to_send.read(1024)
+      while data:
+          print("Sending file to server ... ")
+          client.send(data)
+          data = file_to_send.read(1024)
+      print("Done sending file to sever.")
+      file_to_send.close()
+      to_server = '/fdone'
+      client.sendall(bytes(to_server, 'UTF-8'))
     else:
       client.sendall(bytes(to_server,'UTF-8'))
     if to_server == '/dc' or server_dc == 1:
