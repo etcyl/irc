@@ -16,9 +16,11 @@ The following client to server commands are available:
 
     /join <str chatroom_name>: connects you to chatroom_name chatroom
     /msg <str chatroom_name> <str msg>: sends your message to chatroom_name chatroom
+    /pmsg <str username> <str msg>: sends your message to the user username
     /leave <str chatroom_name>: removes you from chatroom_name chatroom
     /ls <str chatroom_name>: lists all members of chatroom_name chatroom
     /ls_all: lists all available chatrooms
+    /fsend <str username> <str file.extension>: sends a file to the user username
     /dc: disconnects you from the server
     /help: prints these messages again
 
