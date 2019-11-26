@@ -47,7 +47,8 @@ class InputThread(threading.Thread): # InputThread inherits properties from the 
                   print("Receiving file from user ... ")
                   data = self.client.recv(1024)
                   print("data is: ", data)
-                  if data[-1] == 101 or data == '/fdone' or data == b'':
+                  is_done = list(data)
+                  if is_done[-5:] == [47, 78, 85, 76, 76]:
                       print("Done receiving file from user.")
                       done = 1
                       break
@@ -115,12 +116,14 @@ while True:
       data = file_to_send.read(1024)
       while data:
           print("Sending file to server ... ")
+          data = bytes(data)
           client.send(data)
           data = file_to_send.read(1024)
       print("Done sending file to sever.")
       file_to_send.close()
-      to_server = '/fdone'
-      client.sendall(bytes(to_server, 'UTF-8'))
+      to_server = '/NULL'#b''#b'--__!!__!_!__'
+      client.sendall(bytes(to_server, 'UTF-8'))#, 'UTF-8'))
+      #client.sendall(bytes(to_server, 'UTF-8'))
     else:
       client.sendall(bytes(to_server,'UTF-8'))
     if to_server == '/dc' or server_dc == 1:

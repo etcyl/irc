@@ -160,17 +160,32 @@ class ClientThread(threading.Thread):
               for i in range(len(user_list)):
                   if user_list[i].get_name() == user_to_send:
                       user_list[i].socket.send(bytes('/fsend ' + file_name, 'UTF-8'))
-                      #download_fname = self.random_string()
-                      #file_to_download = open(file_name, "wb")
                       done = 0
                       while done == 0:
                           print("Receiving ...")
                           data = self.csocket.recv(1024)
+                          data = bytes(data)
                           print("data is: ", data[-1])
-                          if data[-1] == 101:
+                          try:
+                              #data[-1] = data.decode()
+                              if data.encode() == '/NULL':
+                                  print("TRUE")
+                                  print("TRUE")
+                                  print("TRUE")
+                                  print("TRUE")
+                                  print("TRUE")
+                                  print("TRUE")
+                              #print("DATA IS: ", data)
+                              #print("")
+                              print("")
+                              print("")
+                          except AttributeError:
+                              data = data
+                          is_done = list(data)
+                          if is_done[-5:] == [47, 78, 85, 76, 76]:
                               done = 1
-                              to_client = '/fdone'
-                              user_list[i].socket.send(bytes(to_client, 'UTF-8'))
+                              to_client = b'/NULL'#b'--__!!__!_!__'
+                              user_list[i].socket.send(to_client)#(bytes(to_client, 'UTF-8'))
                               print("Finished sending file ... ")
                               break
                           print("Sending ... ")
@@ -222,7 +237,10 @@ class ClientThread(threading.Thread):
                       for j in range(len(rooms[i].rlist)):
                           rooms[i].rlist[j].socket.send(bytes("(" + room_name + ") " + self.username + ": " + to_send, 'UTF-8'))
                       break
-        print ("(", user_name, ")", "Client at: ", clientAddress , " disconnected...")
+        try:
+            print ("(", user_name, ")", "Client at: ", clientAddress , " disconnected...")
+        except UnboundLocalError:
+            print("User forced connection to close unexpectedly.")
 
 LOCALHOST = "127.0.0.1"
 PORT = 8080
