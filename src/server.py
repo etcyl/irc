@@ -165,27 +165,11 @@ class ClientThread(threading.Thread):
                           print("Receiving ...")
                           data = self.csocket.recv(1024)
                           data = bytes(data)
-                          print("data is: ", data[-1])
-                          try:
-                              #data[-1] = data.decode()
-                              if data.encode() == '/NULL':
-                                  print("TRUE")
-                                  print("TRUE")
-                                  print("TRUE")
-                                  print("TRUE")
-                                  print("TRUE")
-                                  print("TRUE")
-                              #print("DATA IS: ", data)
-                              #print("")
-                              print("")
-                              print("")
-                          except AttributeError:
-                              data = data
                           is_done = list(data)
                           if is_done[-5:] == [47, 78, 85, 76, 76]:
                               done = 1
-                              to_client = b'/NULL'#b'--__!!__!_!__'
-                              user_list[i].socket.send(to_client)#(bytes(to_client, 'UTF-8'))
+                              to_client = b'/NULL'
+                              user_list[i].socket.send(to_client)
                               print("Finished sending file ... ")
                               break
                           print("Sending ... ")

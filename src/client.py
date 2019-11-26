@@ -46,7 +46,6 @@ class InputThread(threading.Thread): # InputThread inherits properties from the 
               while done == 0:
                   print("Receiving file from user ... ")
                   data = self.client.recv(1024)
-                  print("data is: ", data)
                   is_done = list(data)
                   if is_done[-5:] == [47, 78, 85, 76, 76]:
                       print("Done receiving file from user.")
@@ -108,10 +107,6 @@ while True:
       header_len = len('/fsend') + len(user_to_send)
       file_name = str(to_server[0: 0:] + to_server[header_len + 2 ::])
       print("Filename is: ", file_name)
-      if file_name == "img.png":
-        print("True")
-      else:
-        print("false")
       file_to_send = open(file_name, "rb")
       data = file_to_send.read(1024)
       while data:
@@ -121,9 +116,8 @@ while True:
           data = file_to_send.read(1024)
       print("Done sending file to sever.")
       file_to_send.close()
-      to_server = '/NULL'#b''#b'--__!!__!_!__'
-      client.sendall(bytes(to_server, 'UTF-8'))#, 'UTF-8'))
-      #client.sendall(bytes(to_server, 'UTF-8'))
+      to_server = '/NULL'
+      client.sendall(bytes(to_server, 'UTF-8'))
     else:
       client.sendall(bytes(to_server,'UTF-8'))
     if to_server == '/dc' or server_dc == 1:
