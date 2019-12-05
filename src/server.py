@@ -79,8 +79,6 @@ class ClientThread(threading.Thread):
                 msg = data.decode()
             except (KeyboardInterrupt, OSError):
                 print("Closing thread.")
-                #for i in range(len(threads)):
-                    #threads[i].stop()
                 exit(0)
                 break
             if msg[0:4] == "name":
@@ -251,8 +249,6 @@ while True:
       threads.append(newthread)
     except KeyboardInterrupt:
       print("KeyboardInterrupt detected ...")
-      #for i in range(len(threads)):
-          #threads[i].stop()
       to_client = '/DC'
       try: # Close connection to clients by sending the /DC command
           for k in range(len(user_list)):

@@ -80,7 +80,7 @@ def print_help_menu():
 print_help_menu() # Show the user what their options are
 
 # Store username for the user's session on the server
-print("Please enter your username: ")
+print("Please enter your username (cannot contain spaces): ")
 username = input()
 to_server = "name: " + username
 client.sendall(bytes(to_server, 'UTF-8'))
@@ -133,11 +133,9 @@ while True:
     to_server = '/dc'
     try:
       client.sendall(bytes(to_server,'UTF-8'))
-      #print("Closing ... ")
     except BrokenPipeError:
       pass
     finally:
-      #print("Closing ... ")
       stream_thread.stop()
       client.close()
       exit(0)
