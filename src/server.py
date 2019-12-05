@@ -1,3 +1,7 @@
+"""
+Some source code modified from: http://net-informations.com/python/net/thread.htm
+"""
+
 import socket, threading
 
 rooms = []
@@ -44,6 +48,9 @@ class ClientThread(threading.Thread):
     
     def set_username(self, u_name):
         self.username = u_name
+    
+    def get_username(self):
+        return self.username
 
     def random_string(self, stringLength=10):
         """Generate a random string of fixed length """
@@ -92,13 +99,17 @@ class ClientThread(threading.Thread):
                   for j in range(len(rooms[i].rlist)):
                       if rooms[i].rlist[j].get_name() == self.username:
                           rooms[i].rlist = [user for user in rooms[i].rlist if user.get_name() != self.username]
-              for k in range(len(user_list)): # Delete the user from the list of users
+              """for k in range(len(user_list)): # Delete the user from the list of users
                   if user_list[k].get_name() == self.username:
-                      user_list = [user for user in user_list if user.get_name() != self.username]
+                      user_list = [user for user in user_list if user.get_name() != self.username]"""
+              #to_cliet = "/DC"
+              #self.csocket.send(bytes(to_cliet, 'UTF-8'))
               self.stop()
               break
             elif msg[0:7] == '/create':
               print("create room detected")
+              user_already_in_room = 0
+              room_exists = 0
               room_name = msg[0: 0:] + msg[7 + 1::]
               print("Room name is: ", room_name)
               new_room = room(room_name)
@@ -131,6 +142,7 @@ class ClientThread(threading.Thread):
                 room_name = msg[0: 0:] + msg[6 + 1::]
                 for i in range(len(rooms)):
                     for j in range(len(rooms[i].rlist)):
+                        #print("i is: ", i, "j is: ", j, "len(rooms) is: ", len(rooms))
                         if rooms[i].rlist[j].get_name() == self.username and rooms[i].room_name == room_name:
                             rooms[i].rlist = [user for user in rooms[i].rlist if user.get_name() != self.username]
                             room_found = 1
@@ -153,24 +165,29 @@ class ClientThread(threading.Thread):
               user_to_send = split_msg[1]
               header_len = len(split_msg[0]) + len(split_msg[1])
               file_name = msg[0: 0:] + msg[header_len + 2 ::]
-              for i in range(len(user_list)):
-                  if user_list[i].get_name() == user_to_send:
-                      user_list[i].socket.send(bytes('/fsend ' + file_name, 'UTF-8'))
-                      done = 0
-                      while done == 0:
-                          print("Receiving ...")
-                          data = self.csocket.recv(1024)
-                          data = bytes(data)
-                          is_done = list(data)
-                          if is_done[-5:] == [47, 78, 85, 76, 76]:
-                              done = 1
-                              to_client = b'/NULL'
-                              user_list[i].socket.send(to_client)
-                              print("Finished sending file ... ")
-                              break
-                          print("Sending ... ")
-                          user_list[i].socket.send(data)
-                      break
+              for i in range(len(rooms)):
+                  for j in range(len(rooms[i].rlist)):
+                      if rooms[i].rlist[j].get_name() == user_to_send:
+                          get_sender = 'Receiving file from user: ' + str(self.get_username())
+                          rooms[i].rlist[j].socket.send(bytes(get_sender, 'UTF-8'))
+                          rooms[i].rlist[j].socket.send(bytes('/fsend ' + file_name, 'UTF-8'))
+                          done = 0
+                          while done == 0:
+                             print("Receiving ...")
+                             data = self.csocket.recv(1024)
+                             data = bytes(data)
+                             is_done = list(data)
+                             if is_done[-5:] == [47, 78, 85, 76, 76]:
+                                 done = 1
+                                 to_client = b'/NULL'
+                                 rooms[i].rlist[j].socket.send(to_client)
+                                 print("Finished sending file ...")
+                                 get_sender = 'Done receiving file from user: ' + str(self.get_username())
+                                 rooms[i].rlist[j].socket.send(bytes(get_sender, 'UTF-8'))
+                                 break
+                             print("Sending file ... ")
+                             rooms[i].rlist[j].socket.send(data)
+                          break
             elif msg[0:3] == '/ls':
               print('list names detected')
               room_names = []
@@ -189,13 +206,16 @@ class ClientThread(threading.Thread):
               user_found = 0
               split_msg = msg.split()
               user_to_msg = split_msg[1]
+              print("user to msg is: ", user_to_msg)
               header_len = len(split_msg[0]) + len(split_msg[1])
               to_send = msg[0: 0:] + msg[header_len + 2 ::]
-              for i in range(len(user_list)):
-                  if user_list[i].get_name() == user_to_msg:
-                      user_found = 1
-                      user_list[i].socket.send(bytes("(private message from " + self.username + "): " + to_send, 'UTF-8'))
-                      break
+              #print("
+              for i in range(len(rooms)):
+                  for j in range(len(rooms[i].rlist)):
+                      if rooms[i].rlist[j].get_name() == user_to_msg:
+                          user_found = 1
+                          rooms[i].rlist[j].socket.send(bytes("(private message from " + self.username + "): " + to_send, 'UTF-8'))
+                          break
               if user_found == 0:
                   to_send = "Username not found."
                   self.csocket.send(bytes(to_send, 'UTF-8'))
@@ -241,11 +261,11 @@ while True:
       print("KeyboardInterrupt detected ...")
       for i in range(len(threads)):
           threads[i].stop()
-      to_client = '/DC'
+      """to_client = '/DC'
       for i in range(len(rooms)):
           for j in range(len(rooms[i].rlist)):
               print("Sending '/DC' to user: ", rooms[i].rlist[j].get_name())
               rooms[i].rlist[j].socket.send(bytes(to_client, 'UTF-8'))
               rooms[i].rlist[j].socket.shutdown(socket.SHUT_RDWR)
-              rooms[i].rlist[j].socket.close()
+              rooms[i].rlist[j].socket.close()"""
       exit(0)
