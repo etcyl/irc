@@ -77,14 +77,10 @@ class ClientThread(threading.Thread):
             try:
                 data = self.csocket.recv(1024)
                 msg = data.decode()
-            except KeyboardInterrupt:
-                print("KeyboardInterrupt also detected")
-                to_client = '/DC'
-                for i in range(len(rooms)):
-                    for j in range(len(rooms[i].rlist)):
-                        print("Sending message to client: ", rooms[i].rlist[i].get_name())
-                        rooms[i].rlist[j].send(bytes(to_client, 'UTF-8'))
-                self.stop()
+            except (KeyboardInterrupt, OSError):
+                print("Closing thread.")
+                for i in range(len(threads)):
+                    threads[i].stop()
                 exit(0)
                 break
             if msg[0:4] == "name":
@@ -99,11 +95,6 @@ class ClientThread(threading.Thread):
                   for j in range(len(rooms[i].rlist)):
                       if rooms[i].rlist[j].get_name() == self.username:
                           rooms[i].rlist = [user for user in rooms[i].rlist if user.get_name() != self.username]
-              """for k in range(len(user_list)): # Delete the user from the list of users
-                  if user_list[k].get_name() == self.username:
-                      user_list = [user for user in user_list if user.get_name() != self.username]"""
-              #to_cliet = "/DC"
-              #self.csocket.send(bytes(to_cliet, 'UTF-8'))
               self.stop()
               break
             elif msg[0:7] == '/create':
@@ -142,7 +133,6 @@ class ClientThread(threading.Thread):
                 room_name = msg[0: 0:] + msg[6 + 1::]
                 for i in range(len(rooms)):
                     for j in range(len(rooms[i].rlist)):
-                        #print("i is: ", i, "j is: ", j, "len(rooms) is: ", len(rooms))
                         if rooms[i].rlist[j].get_name() == self.username and rooms[i].room_name == room_name:
                             rooms[i].rlist = [user for user in rooms[i].rlist if user.get_name() != self.username]
                             room_found = 1
@@ -209,7 +199,6 @@ class ClientThread(threading.Thread):
               print("user to msg is: ", user_to_msg)
               header_len = len(split_msg[0]) + len(split_msg[1])
               to_send = msg[0: 0:] + msg[header_len + 2 ::]
-              #print("
               for i in range(len(rooms)):
                   for j in range(len(rooms[i].rlist)):
                       if rooms[i].rlist[j].get_name() == user_to_msg:
@@ -261,11 +250,13 @@ while True:
       print("KeyboardInterrupt detected ...")
       for i in range(len(threads)):
           threads[i].stop()
-      """to_client = '/DC'
-      for i in range(len(rooms)):
-          for j in range(len(rooms[i].rlist)):
-              print("Sending '/DC' to user: ", rooms[i].rlist[j].get_name())
-              rooms[i].rlist[j].socket.send(bytes(to_client, 'UTF-8'))
-              rooms[i].rlist[j].socket.shutdown(socket.SHUT_RDWR)
-              rooms[i].rlist[j].socket.close()"""
+      to_client = '/DC'
+      try: # Close connection to clients by sending the /DC command
+          for k in range(len(user_list)):
+              print("Sending /DC to user: ", user_list[k].get_name())
+              user_list[k].socket.send(bytes(to_client, 'UTF-8'))
+              user_list[k].socket.shutdown(socket.SHUT_RDWR)
+              user_list[k].socket.close()
+      except OSError:
+          pass
       exit(0)
