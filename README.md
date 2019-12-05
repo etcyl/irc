@@ -12,7 +12,8 @@ Next, start a client process:
     $python client.py
 
 Multiple terminals can exceute the client process to facilitate distinct chatroom users. 
-The following client to server commands are available:
+The following client to server commands are available (note that username cannot contain spaces,
+and private messaging only works for receiver clients in a chatroom already):
 
     /join <str chatroom_name>: connects you to chatroom_name chatroom
     /msg <str chatroom_name> <str msg>: sends your message to chatroom_name chatroom
