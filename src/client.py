@@ -1,3 +1,7 @@
+"""
+Some source code modified from: http://net-informations.com/python/net/thread.htm
+"""
+
 import socket, threading, sys
 
 # Client-side init
@@ -32,6 +36,7 @@ class InputThread(threading.Thread): # InputThread inherits properties from the 
               server_dc = 1
               self.client.shutdown(socket.SHUT_RDWR)
               self.client.close()
+              self.stop()
               exit(0)
             elif msg[0:6] == '/fsend':
               print("Downloading file ... ")
@@ -52,7 +57,7 @@ class InputThread(threading.Thread): # InputThread inherits properties from the 
             else:
               print (msg)
           except socket.error as e:
-            print("Socket error, possible server crash detected, enter any alphanumeric value to quit ...")
+            #print("Socket error, possible server crash detected, enter any alphanumeric value to quit ...")
             server_dc = 1
             exit(0)
 
@@ -63,7 +68,8 @@ def print_help_menu():
     print("/join <str chatroom_name>: connects you to chatroom_name chatroom,")
     print("/msg <str chatroom_name> <str msg>: sends your message to chatroom_name chatroom,")
     print("/pmsg <str username> <str msg>: sends a private message to the user username,")
-    print("*note that /pmsg only works for users in chatrooms*")
+    print("/fsend <str username> <str file.ext>: sends the file with name file and extension .ext to the user username")
+    print("*note that /pmsg and /fsend only works for users in chatrooms*")
     print("/leave <str chatroom_name>: removes you from chatroom_name chatroom,")
     print("/ls <str chatroom_name>: lists all members of chatroom_name chatroom,")
     print("/ls_all: lists all available chatrooms,")
@@ -120,16 +126,18 @@ while True:
       stream_thread.stop()
       print("Disconnecting from server ... ")
       stream_thread.stop()
-      sys.exit(0)
+      client.close()
+      exit(0)
   except (KeyboardInterrupt, ValueError, BrokenPipeError):
     print("Disconnecting from server ...")
     to_server = '/dc'
     try:
       client.sendall(bytes(to_server,'UTF-8'))
+      #print("Closing ... ")
     except BrokenPipeError:
       pass
     finally:
-      print("Closing ... ")
+      #print("Closing ... ")
       stream_thread.stop()
       client.close()
       exit(0)
